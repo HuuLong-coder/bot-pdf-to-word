@@ -1,10 +1,12 @@
 import os
 from pathlib import Path
+import shutil
 import tempfile
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
 from converse import pdf_to_word
 
@@ -41,20 +43,22 @@ async def convert(file: UploadFile = File(...)):
     if not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Chi ho tro file .pdf")
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        input_path = Path(tmpdir) / filename
-        output_path = input_path.with_suffix(".docx")
+    tmpdir = Path(tempfile.mkdtemp(prefix="pdf2docx_"))
+    input_path = tmpdir / filename
+    output_path = input_path.with_suffix(".docx")
 
-        content = await file.read()
-        input_path.write_bytes(content)
+    content = await file.read()
+    input_path.write_bytes(content)
 
-        try:
-            pdf_to_word(input_path, output_path, title="Converted from PDF")
-        except Exception as exc:  # noqa: BLE001
-            raise HTTPException(status_code=500, detail=f"Convert that bai: {exc}")
+    try:
+        pdf_to_word(input_path, output_path, title="Converted from PDF")
+    except Exception as exc:  # noqa: BLE001
+        shutil.rmtree(tmpdir, ignore_errors=True)
+        raise HTTPException(status_code=500, detail=f"Convert that bai: {exc}")
 
-        return FileResponse(
-            path=str(output_path),
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename=output_path.name,
-        )
+    return FileResponse(
+        path=str(output_path),
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename=output_path.name,
+        background=BackgroundTask(shutil.rmtree, str(tmpdir), True),
+    )
