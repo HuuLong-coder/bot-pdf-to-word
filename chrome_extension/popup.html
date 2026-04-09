@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PDF to Word Free</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>PDF to Word</h1>
+      <p class="subtitle">Keo file PDF vao day de doi sang Word</p>
+
+      <div id="dropzone" class="dropzone" aria-label="Drop PDF here">
+        <p><strong>Drop PDF here</strong></p>
+        <p>hoac chon file ben duoi</p>
+      </div>
+
+      <input id="fileInput" type="file" accept="application/pdf" />
+      <button id="convertBtn" disabled>Convert</button>
+
+      <p id="status" class="status">Chua co file nao duoc chon.</p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

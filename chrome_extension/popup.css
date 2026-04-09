@@ -1,0 +1,92 @@
+:root {
+  --bg: #f6f3ee;
+  --panel: #fffefb;
+  --accent: #b33a3a;
+  --accent-2: #1e293b;
+  --text: #1f1f1f;
+  --muted: #5b5b5b;
+  --ok: #25603f;
+  --error: #9f1d1d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: radial-gradient(circle at 80% 10%, #ffe8d9 0%, #f6f3ee 45%, #e8ecf2 100%);
+  color: var(--text);
+  width: 360px;
+  min-height: 420px;
+}
+
+.app {
+  padding: 16px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.3px;
+}
+
+.subtitle {
+  margin: 6px 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dropzone {
+  border: 2px dashed var(--accent-2);
+  border-radius: 12px;
+  padding: 22px 12px;
+  text-align: center;
+  background: var(--panel);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  margin-bottom: 12px;
+}
+
+.dropzone.dragover {
+  transform: translateY(-1px) scale(1.01);
+  border-color: var(--accent);
+  background: #fff6f1;
+}
+
+#fileInput {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+#convertBtn {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(120deg, #9e2f2f, #cb5b31);
+  cursor: pointer;
+}
+
+#convertBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 34px;
+}
+
+.status.ok {
+  color: var(--ok);
+}
+
+.status.error {
+  color: var(--error);
+}

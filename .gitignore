@@ -1,0 +1,5 @@
+node_modules/
+auth.json
+auth2.json
+__pycache__/
+*.pyc

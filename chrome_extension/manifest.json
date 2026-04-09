@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "PDF to Word Free",
+  "version": "1.1.0",
+  "description": "Keo tha file PDF va nhan lai file Word",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PDF to Word Free"
+  },
+  "options_page": "options.html",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "bot-clean-windows",
+  "version": "1.0.0",
+  "description": "Safe cleaner script for Windows (dry-run by default).",
+  "main": "bot_clean.js",
+  "scripts": {
+    "dry-run": "node bot_clean.js --dry-run",
+    "list": "node bot_clean.js --dry-run",
+    "clean": "node bot_clean.js --confirm --confirm-token=DELETE",
+    "safe-list": "node bot_clean.js --dry-run"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
