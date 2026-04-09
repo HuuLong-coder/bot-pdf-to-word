@@ -46,6 +46,7 @@ Tiếp theo
 ## PDF to Word miễn phí (converse.py)
 
 Script `converse.py` dùng `pdfplumber` + `python-docx` để trích xuất text từ PDF sang file Word.
+Ban moi da them `pdf2docx` de giu bo cuc goc tot hon.
 
 ### Cài dependencies Python
 
@@ -66,6 +67,18 @@ Mặc định output sẽ là file cùng tên, đuôi `.docx` (ví dụ `input.d
 ```powershell
 python converse.py input.pdf -o output.docx
 ```
+
+### Chay giu layout dep hon (khuyen dung)
+
+```powershell
+python converse.py input.pdf -o output.docx --engine layout
+```
+
+Engine ho tro:
+
+- `auto` (mac dinh): thu `layout`, loi thi fallback `text`.
+- `layout`: uu tien giong file goc hon.
+- `text`: trich text thuong, nhanh nhung mat bo cuc.
 
 ### Tùy chọn nâng cao
 
