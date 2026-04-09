@@ -2,6 +2,7 @@ import argparse
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+import tempfile
 from typing import Optional
 
 import pdfplumber
@@ -11,6 +12,11 @@ try:
     from pdf2docx import Converter as Pdf2DocxConverter
 except Exception:  # noqa: BLE001
     Pdf2DocxConverter = None
+
+try:
+    import fitz
+except Exception:  # noqa: BLE001
+    fitz = None
 
 
 @dataclass
@@ -57,6 +63,50 @@ def _convert_with_pdf2docx(pdf_file: Path, output_file: Path) -> ConversionResul
         pages_with_text=pages_total,
         output_path=output_file,
         engine_used="pdf2docx",
+    )
+
+
+def _convert_with_page_images(pdf_file: Path, output_file: Path, *, dpi: int = 220) -> ConversionResult:
+    if fitz is None:
+        raise RuntimeError(
+            "Chưa cài thư viện PyMuPDF. Chạy: python -m pip install PyMuPDF"
+        )
+
+    pdf = fitz.open(str(pdf_file))
+    pages_total = pdf.page_count
+    if pages_total == 0:
+        pdf.close()
+        raise ValueError("File PDF không có trang nào.")
+
+    doc = Document()
+    content_width = (
+        doc.sections[0].page_width
+        - doc.sections[0].left_margin
+        - doc.sections[0].right_margin
+    )
+
+    with tempfile.TemporaryDirectory(prefix="pdf_page_images_") as tmpdir:
+        tmp_dir = Path(tmpdir)
+        try:
+            for page_index in range(pages_total):
+                page = pdf.load_page(page_index)
+                scale = dpi / 72
+                pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
+                img_path = tmp_dir / f"page_{page_index + 1:04d}.png"
+                pix.save(str(img_path))
+
+                doc.add_picture(str(img_path), width=content_width)
+                if page_index < pages_total - 1:
+                    doc.add_page_break()
+        finally:
+            pdf.close()
+
+    doc.save(str(output_file))
+    return ConversionResult(
+        pages_total=pages_total,
+        pages_with_text=pages_total,
+        output_path=output_file,
+        engine_used="page-image",
     )
 
 
@@ -112,10 +162,11 @@ def pdf_to_word(
     engine: str = "auto",
 ) -> ConversionResult:
     """
-    Chuyển nội dung text từ PDF sang Word (.docx).
+    Chuyển nội dung từ PDF sang Word (.docx).
 
     engine:
-    - auto: thử giữ bố cục bằng pdf2docx, lỗi thì fallback text extraction.
+    - auto: thử image -> layout -> text.
+    - image: giữ giao diện gần như y hệt PDF nhất (khó chỉnh sửa text).
     - layout: chỉ dùng pdf2docx (giữ layout tốt hơn).
     - text: trích text thuần (nhanh, nhưng mất layout).
     """
@@ -132,8 +183,11 @@ def pdf_to_word(
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     normalized_engine = engine.lower().strip()
-    if normalized_engine not in {"auto", "layout", "text"}:
-        raise ValueError("engine phải là một trong các giá trị: auto, layout, text")
+    if normalized_engine not in {"auto", "image", "layout", "text"}:
+        raise ValueError("engine phải là một trong các giá trị: auto, image, layout, text")
+
+    if normalized_engine == "image":
+        return _convert_with_page_images(pdf_file, output_file)
 
     if normalized_engine == "layout":
         return _convert_with_pdf2docx(pdf_file, output_file)
@@ -146,20 +200,27 @@ def pdf_to_word(
             add_page_headings=add_page_headings,
         )
 
-    try:
-        return _convert_with_pdf2docx(pdf_file, output_file)
-    except Exception:
-        return _convert_with_text_extraction(
-            pdf_file,
-            output_file,
-            title=title,
-            add_page_headings=add_page_headings,
-        )
+    for candidate in ("image", "layout", "text"):
+        try:
+            if candidate == "image":
+                return _convert_with_page_images(pdf_file, output_file)
+            if candidate == "layout":
+                return _convert_with_pdf2docx(pdf_file, output_file)
+            return _convert_with_text_extraction(
+                pdf_file,
+                output_file,
+                title=title,
+                add_page_headings=add_page_headings,
+            )
+        except Exception:
+            continue
+
+    raise RuntimeError("Không thể chuyển đổi PDF với các engine hiện có.")
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Chuyển PDF sang Word với 2 engine: giữ layout (pdf2docx) hoặc text extraction"
+        description="Chuyển PDF sang Word với 3 engine: image, layout, text"
     )
     parser.add_argument("pdf_input", help="Đường dẫn file PDF đầu vào")
     parser.add_argument(
@@ -181,9 +242,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--engine",
-        choices=["auto", "layout", "text"],
+        choices=["auto", "image", "layout", "text"],
         default="auto",
-        help="Engine convert: auto (mac dinh), layout (dep hon), text (don gian)",
+        help="Engine convert: auto, image (giong nhat), layout (can bang), text (nhe)",
     )
     return parser
 
