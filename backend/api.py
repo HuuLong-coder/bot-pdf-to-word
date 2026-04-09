@@ -17,7 +17,6 @@ allowed_origins_raw = os.getenv(
     "http://127.0.0.1:8000,http://localhost:8000",
 )
 allowed_origins = [origin.strip() for origin in allowed_origins_raw.split(",") if origin.strip()]
-conversion_engine = os.getenv("CONVERSION_ENGINE", "layout").strip().lower()
 
 # Set ALLOWED_ORIGINS for production, for example:
 # ALLOWED_ORIGINS=https://your-site.com,chrome-extension://<your-extension-id>
@@ -56,7 +55,7 @@ async def convert(file: UploadFile = File(...)):
             input_path,
             output_path,
             title="Converted from PDF",
-            engine=conversion_engine,
+            engine="layout",
         )
     except Exception as exc:  # noqa: BLE001
         shutil.rmtree(tmpdir, ignore_errors=True)
