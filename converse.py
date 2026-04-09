@@ -165,7 +165,7 @@ def pdf_to_word(
     Chuyển nội dung từ PDF sang Word (.docx).
 
     engine:
-    - auto: thử image -> layout -> text.
+    - auto: thử layout -> text (ưu tiên DOCX chỉnh sửa được).
     - image: giữ giao diện gần như y hệt PDF nhất (khó chỉnh sửa text).
     - layout: chỉ dùng pdf2docx (giữ layout tốt hơn).
     - text: trích text thuần (nhanh, nhưng mất layout).
@@ -200,10 +200,8 @@ def pdf_to_word(
             add_page_headings=add_page_headings,
         )
 
-    for candidate in ("image", "layout", "text"):
+    for candidate in ("layout", "text"):
         try:
-            if candidate == "image":
-                return _convert_with_page_images(pdf_file, output_file)
             if candidate == "layout":
                 return _convert_with_pdf2docx(pdf_file, output_file)
             return _convert_with_text_extraction(
@@ -244,7 +242,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--engine",
         choices=["auto", "image", "layout", "text"],
         default="auto",
-        help="Engine convert: auto, image (giong nhat), layout (can bang), text (nhe)",
+        help="Engine convert: auto (editable), layout (editable), text (editable), image (giong nhat)",
     )
     return parser
 
